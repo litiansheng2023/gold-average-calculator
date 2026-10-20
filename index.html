@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>金策 · 均价计算器</title>
   <style>
     /* ========== 主题变量 ========== */
@@ -201,7 +201,7 @@
     [data-theme="dark"] .sun-icon { opacity: 0.4; }
     [data-theme="dark"] .moon-icon { opacity: 1; }
 
-    /* ========== 手机端选项卡导航 (默认隐藏) ========== */
+    /* ========== 手机端选项卡导航 ========== */
     .mobile-tabs {
       display: none; 
       background-color: var(--tab-bg);
@@ -214,7 +214,7 @@
 
     .mobile-tab-btn {
       flex: 1;
-      padding: 0.6rem 0;
+      padding: 0.5rem 0;
       text-align: center;
       font-size: 0.9rem;
       font-weight: 600;
@@ -396,21 +396,24 @@
       letter-spacing: 0.5px;
     }
 
-    /* ========== 响应式（手机端专属改造） ========== */
+    /* ========== 响应式（手机端极限压缩空间） ========== */
     @media (max-width: 768px) {
       body {
-        padding: 1rem 1rem 2rem 1rem;
+        padding: 0.5rem 0.8rem 1rem 0.8rem; /* 极简边距 */
         align-items: flex-start;
-        padding-top: 1rem; /* 减少顶部留白 */
       }
 
-      /* 修复标题重叠：改为左右分布 */
+      .terminal-container {
+        gap: 0.5rem; /* 缩减大块间距 */
+      }
+
       .terminal-header {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        padding-bottom: 0.8rem; /* 减少底部留白 */
-        margin-bottom: 0.5rem;
+        padding-bottom: 0.3rem;
+        margin-bottom: 0;
+        border-bottom: none; /* 移除横线省空间 */
       }
 
       .header-left {
@@ -418,49 +421,47 @@
       }
 
       .terminal-header h1 {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
       }
       
       .terminal-header h1::before {
-        height: 16px;
+        height: 14px;
         width: 3px;
       }
 
       .terminal-subtitle {
-        font-size: 0.65rem;
-        margin-left: 0.5rem;
+        font-size: 0.6rem;
+        margin-left: 0.4rem;
       }
 
-      /* 取消绝对定位，使之与标题并排 */
       .theme-toggle {
         position: static; 
-        transform: scale(0.9); /* 稍微缩小一点 */
-        flex-shrink: 0;
+        transform: scale(0.85);
+        transform-origin: right center;
       }
 
-      /* 显示手机端选项卡 */
       .mobile-tabs {
         display: flex;
-        margin-top: 0.5rem;
+        margin-top: 0.2rem;
         margin-bottom: 0.2rem;
+        padding: 3px;
       }
 
       .mobile-tab-btn {
-        padding: 0.5rem 0; /* 压缩按钮高度 */
+        padding: 0.4rem 0;
+        font-size: 0.85rem;
       }
 
-      /* 卡片区改为相对定位，方便动画 */
       .calc-grid {
         grid-template-columns: 1fr;
         gap: 0; 
       }
 
-      /* 隐藏非激活的卡片，保留滑动动画 */
       .calc-card {
         display: none;
         animation: slideFadeIn 0.3s ease-out forwards;
-        margin-top: 1rem;
-        padding: 1.2rem 1rem; /* 缩小卡片内边距 */
+        margin-top: 0.2rem; /* 极限缩小卡片上边距 */
+        padding: 1rem 0.8rem; /* 极限缩小卡片内边距 */
       }
 
       .calc-card.active-card {
@@ -472,36 +473,49 @@
         to { opacity: 1; transform: translateX(0); }
       }
 
-      /* 压缩卡片内部的垂直空间，让结果显示出来 */
       .card-header {
-        margin-bottom: 1rem;
-        padding-bottom: 0.8rem;
+        margin-bottom: 0.6rem;
+        padding-bottom: 0.6rem;
       }
-
-      .input-group {
-        margin-bottom: 0.8rem; /* 缩小输入框之间的间距 */
-        gap: 0.3rem;
-      }
-
-      .input-group input {
-        padding: 0.6rem 0.8rem; /* 缩小输入框高度 */
+      
+      .card-title {
         font-size: 0.95rem;
       }
 
+      /* 核心压缩：输入框紧凑排版 */
+      .input-group {
+        margin-bottom: 0.5rem; 
+        gap: 0.2rem;
+      }
+
+      .input-group label {
+        font-size: 0.75rem;
+      }
+
+      .input-group input {
+        padding: 0.5rem 0.8rem; 
+        font-size: 16px; /* 防止 iOS 自动放大 */
+      }
+
       .calc-btn {
-        padding: 0.7rem; /* 缩小按钮高度 */
-        margin-top: 0.2rem;
+        padding: 0.65rem; 
+        margin-top: 0.4rem;
+        font-size: 0.9rem;
       }
 
       .result-box {
-        margin-top: 1rem;
-        padding: 0.8rem 1rem;
-        min-height: 60px; /* 缩小结果框高度 */
+        margin-top: 0.8rem;
+        padding: 0.6rem 0.8rem;
+        min-height: 56px; /* 缩小结果框高度 */
       }
 
-      /* 调整手机上显示的数字大小 */
       .result-value {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
+      }
+
+      .terminal-footer {
+        margin-top: 0.5rem;
+        font-size: 0.65rem;
       }
     }
   </style>
@@ -509,14 +523,12 @@
 <body>
   <div class="terminal-container">
     
-    <!-- 头部 -->
     <div class="terminal-header">
       <div class="header-left">
         <h1>金策 · 均价计算器</h1>
         <div class="terminal-subtitle">JINCE / AVERAGE PRICE TERMINAL</div>
       </div>
       
-      <!-- 主题切换 -->
       <div class="theme-toggle" id="themeToggle" title="切换主题">
         <div class="slider"></div>
         <div class="icon sun-icon">☀</div>
@@ -524,17 +536,15 @@
       </div>
     </div>
 
-    <!-- 手机端专属选项卡 -->
     <div class="mobile-tabs">
       <div class="mobile-tab-slider" id="tabSlider"></div>
       <button class="mobile-tab-btn active" data-target="card-buy">补仓计算</button>
       <button class="mobile-tab-btn" data-target="card-avg">新均价预估</button>
     </div>
 
-    <!-- 计算器卡片区 -->
     <div class="calc-grid">
       
-      <!-- 左侧/第一个：补仓克数计算 -->
+      <!-- 补仓克数计算 -->
       <div class="calc-card active-card" id="card-buy">
         <div class="card-header">
           <div class="card-title">补仓克数计算</div>
@@ -566,7 +576,7 @@
         </div>
       </div>
 
-      <!-- 右侧/第二个：新均价预估 -->
+      <!-- 新均价预估 -->
       <div class="calc-card" id="card-avg">
         <div class="card-header">
           <div class="card-title">新均价预估</div>
