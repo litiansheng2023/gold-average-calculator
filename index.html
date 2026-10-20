@@ -19,6 +19,14 @@
       --shadow-color: rgba(0, 0, 0, 0.05);
       --btn-hover-bg: rgba(180, 140, 50, 0.1);
       --bg-radial: radial-gradient(circle at 50% 0%, var(--gold-glow) 0%, transparent 50%);
+      
+      /* 浅色模式按钮专属变量 */
+      --btn-bg: #fdfaf2;
+      --btn-border: #d4b46a;
+      --btn-text: #8c6415;
+      --btn-shadow: 0 2px 8px rgba(180, 140, 50, 0.15);
+      --btn-hover-bg-solid: #f7efd9;
+      --btn-active-bg: #efe3c3;
     }
 
     :root[data-theme="dark"] {
@@ -35,6 +43,14 @@
       --shadow-color: rgba(0, 0, 0, 0.4);
       --btn-hover-bg: rgba(230, 200, 117, 0.15);
       --bg-radial: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+      
+      /* 深色模式按钮专属变量 */
+      --btn-bg: linear-gradient(180deg, rgba(230, 200, 117, 0.15) 0%, rgba(230, 200, 117, 0.05) 100%);
+      --btn-border: rgba(230, 200, 117, 0.5);
+      --btn-text: #fceeb5;
+      --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.3);
+      --btn-hover-bg-solid: linear-gradient(180deg, rgba(230, 200, 117, 0.25) 0%, rgba(230, 200, 117, 0.1) 100%);
+      --btn-active-bg: rgba(230, 200, 117, 0.1);
     }
 
     * {
@@ -61,39 +77,26 @@
       transition: background-color 1s ease, color 1s ease;
     }
 
-    /* 让页面各个元素在动画期间的颜色变化变得更平滑缓慢 */
-    .calc-card, .input-group input, .result-box, .theme-toggle, .calc-btn, .terminal-header, h1, label, span {
+    .calc-card, .input-group input, .result-box, .theme-toggle, .terminal-header, h1, label, span {
       transition: background-color 1s ease, border-color 1s ease, color 1s ease, box-shadow 1s ease;
     }
 
-    /* --- 时光流逝：核心扩散动画 --- */
+    /* 时光流逝动画 */
     ::view-transition-old(root),
     ::view-transition-new(root) {
       animation: none;
       mix-blend-mode: normal;
     }
-
-    ::view-transition-old(root) {
-      z-index: 1;
-    }
-
+    ::view-transition-old(root) { z-index: 1; }
     ::view-transition-new(root) {
       z-index: 2;
-      /* 放慢：2.2秒的日夜交替时间 */
       animation: revealCircle 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-
     @keyframes revealCircle {
-      from {
-        clip-path: circle(0% at var(--click-x) var(--click-y));
-      }
-      to {
-        /* 扩散到足够覆盖全屏的范围 */
-        clip-path: circle(150% at var(--click-x) var(--click-y));
-      }
+      from { clip-path: circle(0% at var(--click-x) var(--click-y)); }
+      to { clip-path: circle(150% at var(--click-x) var(--click-y)); }
     }
 
-    /* 主容器 */
     .terminal-container {
       width: 100%;
       max-width: 1100px;
@@ -103,7 +106,6 @@
       position: relative;
     }
 
-    /* 顶部标题区 */
     .terminal-header {
       display: flex;
       justify-content: space-between;
@@ -182,7 +184,6 @@
       background-color: var(--bg-card);
       border-radius: 50%;
       box-shadow: 0 2px 5px var(--shadow-color);
-      /* 配合慢速动画，让滑块移动稍微变慢一点点 */
       transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
       z-index: 0;
     }
@@ -196,7 +197,6 @@
     [data-theme="dark"] .sun-icon { opacity: 0.4; }
     [data-theme="dark"] .moon-icon { opacity: 1; }
 
-    /* 网格布局 */
     .calc-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -277,28 +277,33 @@
       color: var(--text-dark);
     }
 
+    /* --- 增强后的按钮 --- */
     .calc-btn {
       width: 100%;
-      background: var(--bg-input);
-      border: 1px solid var(--border-gold);
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
       border-radius: 6px;
       padding: 0.9rem;
       font-size: 0.95rem;
       font-weight: 600;
-      letter-spacing: 1px;
-      color: var(--gold-main);
+      letter-spacing: 2px;
+      color: var(--btn-text);
       cursor: pointer;
       margin-top: 0.5rem;
       font-family: var(--font-sans);
+      box-shadow: var(--btn-shadow);
+      transition: all 0.2s ease;
     }
 
     .calc-btn:hover {
-      background: var(--btn-hover-bg);
+      background: var(--btn-hover-bg-solid);
       border-color: var(--gold-main);
     }
 
     .calc-btn:active {
-      transform: translateY(1px);
+      background: var(--btn-active-bg);
+      transform: translateY(2px);
+      box-shadow: none;
     }
 
     .result-box {
@@ -466,7 +471,6 @@
         const currentTheme = htmlElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
-        // 获取点击坐标
         const rect = themeToggle.getBoundingClientRect();
         const x = e.clientX || (rect.left + rect.width / 2);
         const y = e.clientY || (rect.top + rect.height / 2);
@@ -479,7 +483,6 @@
             htmlElement.setAttribute('data-theme', newTheme);
           });
         } else {
-          // 降级动画时间也拉长
           document.body.style.transition = 'background-color 1.2s ease, color 1.2s ease';
           htmlElement.setAttribute('data-theme', newTheme);
         }
