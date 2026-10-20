@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>金策 · 均价计算器</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    :root[data-theme="light"] {
+      --bg-base: #f8f9fa;
+      --bg-card: #ffffff;
+      --bg-input: #f1f3f5;
+      --border-color: #e5e7eb;
+      --border-gold: rgba(180, 140, 50, 0.4);
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --text-dark: #9ca3af;
+      --gold-main: #b48524; 
+      --gold-glow: rgba(180, 133, 36, 0.15);
+      --shadow-color: rgba(0, 0, 0, 0.05);
+      --btn-hover-bg: rgba(180, 140, 50, 0.1);
+      --bg-radial: radial-gradient(circle at 50% 0%, var(--gold-glow) 0%, transparent 50%);
     }
 
-    :root {
+    :root[data-theme="dark"] {
       --bg-base: #09090b;
       --bg-card: #121214;
       --bg-input: #18181b;
@@ -22,12 +32,25 @@
       --text-dark: #52525b;
       --gold-main: #e6c875;
       --gold-glow: rgba(230, 200, 117, 0.15);
+      --shadow-color: rgba(0, 0, 0, 0.4);
+      --btn-hover-bg: rgba(230, 200, 117, 0.15);
+      --bg-radial: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
       --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", "PingFang SC", "Hiragino Sans", "Microsoft YaHei", sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     body {
       background-color: var(--bg-base);
+      background-image: var(--bg-radial);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -35,8 +58,39 @@
       padding: 2rem;
       font-family: var(--font-sans);
       color: var(--text-main);
-      /* 极微弱的顶部金色环境光 */
-      background-image: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+      transition: background-color 1s ease, color 1s ease;
+    }
+
+    /* 让页面各个元素在动画期间的颜色变化变得更平滑缓慢 */
+    .calc-card, .input-group input, .result-box, .theme-toggle, .calc-btn, .terminal-header, h1, label, span {
+      transition: background-color 1s ease, border-color 1s ease, color 1s ease, box-shadow 1s ease;
+    }
+
+    /* --- 时光流逝：核心扩散动画 --- */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+
+    ::view-transition-old(root) {
+      z-index: 1;
+    }
+
+    ::view-transition-new(root) {
+      z-index: 2;
+      /* 放慢：2.2秒的日夜交替时间 */
+      animation: revealCircle 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes revealCircle {
+      from {
+        clip-path: circle(0% at var(--click-x) var(--click-y));
+      }
+      to {
+        /* 扩散到足够覆盖全屏的范围 */
+        clip-path: circle(150% at var(--click-x) var(--click-y));
+      }
     }
 
     /* 主容器 */
@@ -46,15 +100,22 @@
       display: flex;
       flex-direction: column;
       gap: 2rem;
+      position: relative;
     }
 
     /* 顶部标题区 */
     .terminal-header {
       display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      justify-content: space-between;
+      align-items: flex-end;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 1.5rem;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     .terminal-header h1 {
@@ -84,28 +145,76 @@
       margin-left: 1rem;
     }
 
-    /* 双列网格 */
+    /* 主题切换开关 */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 76px;
+      height: 34px;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 50px;
+      padding: 3px;
+      cursor: pointer;
+      position: relative;
+      box-shadow: inset 0 2px 4px var(--shadow-color);
+      user-select: none;
+    }
+
+    .theme-toggle .icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 1;
+      transition: opacity 0.4s ease;
+    }
+
+    .theme-toggle .slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 26px;
+      height: 26px;
+      background-color: var(--bg-card);
+      border-radius: 50%;
+      box-shadow: 0 2px 5px var(--shadow-color);
+      /* 配合慢速动画，让滑块移动稍微变慢一点点 */
+      transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      z-index: 0;
+    }
+
+    [data-theme="dark"] .theme-toggle .slider {
+      transform: translateX(42px);
+    }
+
+    .sun-icon { opacity: 1; color: #f59e0b; }
+    .moon-icon { opacity: 0.4; color: #818cf8; }
+    [data-theme="dark"] .sun-icon { opacity: 0.4; }
+    [data-theme="dark"] .moon-icon { opacity: 1; }
+
+    /* 网格布局 */
     .calc-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
     }
 
-    /* 卡片样式 */
     .calc-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      transition: border-color 0.3s;
+      box-shadow: 0 4px 20px var(--shadow-color);
       position: relative;
       overflow: hidden;
     }
 
     .calc-card:hover {
       border-color: var(--border-gold);
-      box-shadow: 0 4px 24px var(--gold-glow);
     }
 
     .card-header {
@@ -127,13 +236,13 @@
     .card-tag {
       font-size: 0.7rem;
       color: var(--gold-main);
-      background: rgba(212, 175, 55, 0.1);
+      background: var(--btn-hover-bg);
       padding: 0.2rem 0.6rem;
       border-radius: 4px;
       font-family: var(--font-mono);
+      border: 1px solid var(--border-gold);
     }
 
-    /* 输入框组 */
     .input-group {
       display: flex;
       flex-direction: column;
@@ -156,24 +265,21 @@
       font-weight: 500;
       color: var(--text-main);
       outline: none;
-      transition: all 0.2s ease;
       font-family: var(--font-mono);
     }
 
     .input-group input:focus {
       border-color: var(--gold-main);
-      box-shadow: 0 0 0 2px rgba(230, 200, 117, 0.1);
-      background: #1c1c1f;
+      box-shadow: 0 0 0 2px var(--gold-glow);
     }
 
     .input-group input::placeholder {
       color: var(--text-dark);
     }
 
-    /* 按钮 */
     .calc-btn {
       width: 100%;
-      background: rgba(230, 200, 117, 0.05);
+      background: var(--bg-input);
       border: 1px solid var(--border-gold);
       border-radius: 6px;
       padding: 0.9rem;
@@ -182,25 +288,22 @@
       letter-spacing: 1px;
       color: var(--gold-main);
       cursor: pointer;
-      transition: all 0.15s;
       margin-top: 0.5rem;
       font-family: var(--font-sans);
     }
 
     .calc-btn:hover {
-      background: rgba(230, 200, 117, 0.15);
+      background: var(--btn-hover-bg);
       border-color: var(--gold-main);
     }
 
     .calc-btn:active {
       transform: translateY(1px);
-      background: rgba(230, 200, 117, 0.05);
     }
 
-    /* 结果展示区 */
     .result-box {
       margin-top: 1.5rem;
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--bg-input);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 1rem 1.2rem;
@@ -220,7 +323,7 @@
       font-weight: 600;
       color: var(--gold-main);
       font-family: var(--font-mono);
-      text-shadow: 0 0 10px rgba(230, 200, 117, 0.2);
+      text-shadow: 0 0 10px var(--gold-glow);
     }
 
     .result-value.empty {
@@ -230,7 +333,6 @@
       text-shadow: none;
     }
 
-    /* 底部提示 */
     .terminal-footer {
       text-align: center;
       font-size: 0.75rem;
@@ -239,13 +341,24 @@
       letter-spacing: 0.5px;
     }
 
-    /* 移动端适配 */
     @media (max-width: 768px) {
       .calc-grid {
         grid-template-columns: 1fr;
       }
       body {
         padding: 1rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+      }
+      .terminal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      .theme-toggle {
+        position: absolute;
+        top: 2rem;
+        right: 1rem;
       }
       .terminal-header h1 {
         font-size: 1.2rem;
@@ -259,16 +372,20 @@
 <body>
   <div class="terminal-container">
     
-    <!-- 头部 -->
     <div class="terminal-header">
-      <h1>金策 · 均价计算器</h1>
-      <div class="terminal-subtitle">JINCE / AVERAGE PRICE TERMINAL</div>
+      <div class="header-left">
+        <h1>金策 · 均价计算器</h1>
+        <div class="terminal-subtitle">JINCE / AVERAGE PRICE TERMINAL</div>
+      </div>
+      
+      <div class="theme-toggle" id="themeToggle" title="切换主题">
+        <div class="slider"></div>
+        <div class="icon sun-icon">☀</div>
+        <div class="icon moon-icon">☾</div>
+      </div>
     </div>
 
-    <!-- 计算器主体 -->
     <div class="calc-grid">
-      
-      <!-- 左侧：补仓克数 -->
       <div class="calc-card">
         <div class="card-header">
           <div class="card-title">补仓克数计算</div>
@@ -300,7 +417,6 @@
         </div>
       </div>
 
-      <!-- 右侧：新均价预估 -->
       <div class="calc-card">
         <div class="card-header">
           <div class="card-title">新均价预估</div>
@@ -331,17 +447,47 @@
           <span class="result-value empty" id="avgResult">—</span>
         </div>
       </div>
-      
     </div>
 
     <div class="terminal-footer">
       行情仅供参考，决策前请核对银行实际买入/卖出价与交易规则。
     </div>
-
   </div>
 
   <script>
     (function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const htmlElement = document.documentElement;
+
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      htmlElement.setAttribute('data-theme', savedTheme);
+
+      themeToggle.addEventListener('click', (e) => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        // 获取点击坐标
+        const rect = themeToggle.getBoundingClientRect();
+        const x = e.clientX || (rect.left + rect.width / 2);
+        const y = e.clientY || (rect.top + rect.height / 2);
+        
+        if (document.startViewTransition) {
+          htmlElement.style.setProperty('--click-x', `${x}px`);
+          htmlElement.style.setProperty('--click-y', `${y}px`);
+          
+          document.startViewTransition(() => {
+            htmlElement.setAttribute('data-theme', newTheme);
+          });
+        } else {
+          // 降级动画时间也拉长
+          document.body.style.transition = 'background-color 1.2s ease, color 1.2s ease';
+          htmlElement.setAttribute('data-theme', newTheme);
+        }
+
+        localStorage.setItem('theme', newTheme);
+      });
+
+      // 计算器逻辑
       function parseInput(value) {
         const num = parseFloat(value);
         return isNaN(num) ? null : num;
@@ -362,7 +508,6 @@
         }
       }
 
-      // 左侧：计算补仓克数
       function calcRequiredBuy() {
         const avgPrice = parseInput(document.getElementById('avgPrice1').value);
         const holdGrams = parseInput(document.getElementById('holdGrams1').value);
@@ -404,7 +549,6 @@
         }
       }
 
-      // 右侧：计算新均价
       function calcNewAvg() {
         const avgPrice = parseInput(document.getElementById('avgPrice2').value);
         const holdGrams = parseInput(document.getElementById('holdGrams2').value);
@@ -453,7 +597,6 @@
           });
         });
 
-        // 初始化计算
         calcRequiredBuy();
         calcNewAvg();
       }
