@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金策 · 均价计算器</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-base: #09090b;
+      --bg-card: #121214;
+      --bg-input: #18181b;
+      --border-color: #27272a;
+      --border-gold: rgba(212, 175, 55, 0.3);
+      --text-main: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-dark: #52525b;
+      --gold-main: #e6c875;
+      --gold-glow: rgba(230, 200, 117, 0.15);
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", "PingFang SC", "Hiragino Sans", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      font-family: var(--font-sans);
+      color: var(--text-main);
+      /* 极微弱的顶部金色环境光 */
+      background-image: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+    }
+
+    /* 主容器 */
+    .terminal-container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* 顶部标题区 */
+    .terminal-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+    }
+
+    .terminal-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .terminal-header h1::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 20px;
+      background-color: var(--gold-main);
+      border-radius: 2px;
+    }
+
+    .terminal-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+      margin-left: 1rem;
+    }
+
+    /* 双列网格 */
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    /* 卡片样式 */
+    .calc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calc-card:hover {
+      border-color: var(--border-gold);
+      box-shadow: 0 4px 24px var(--gold-glow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: 1px;
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      color: var(--gold-main);
+      background: rgba(212, 175, 55, 0.1);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* 输入框组 */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .input-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .input-group input {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: var(--font-mono);
+    }
+
+    .input-group input:focus {
+      border-color: var(--gold-main);
+      box-shadow: 0 0 0 2px rgba(230, 200, 117, 0.1);
+      background: #1c1c1f;
+    }
+
+    .input-group input::placeholder {
+      color: var(--text-dark);
+    }
+
+    /* 按钮 */
+    .calc-btn {
+      width: 100%;
+      background: rgba(230, 200, 117, 0.05);
+      border: 1px solid var(--border-gold);
+      border-radius: 6px;
+      padding: 0.9rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--gold-main);
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 0.5rem;
+      font-family: var(--font-sans);
+    }
+
+    .calc-btn:hover {
+      background: rgba(230, 200, 117, 0.15);
+      border-color: var(--gold-main);
+    }
+
+    .calc-btn:active {
+      transform: translateY(1px);
+      background: rgba(230, 200, 117, 0.05);
+    }
+
+    /* 结果展示区 */
+    .result-box {
+      margin-top: 1.5rem;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .result-value {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--gold-main);
+      font-family: var(--font-mono);
+      text-shadow: 0 0 10px rgba(230, 200, 117, 0.2);
+    }
+
+    .result-value.empty {
+      color: var(--text-dark);
+      font-weight: 400;
+      font-size: 1rem;
+      text-shadow: none;
+    }
+
+    /* 底部提示 */
+    .terminal-footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-dark);
+      margin-top: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      .calc-grid {
+        grid-template-columns: 1fr;
+      }
+      body {
+        padding: 1rem;
+      }
+      .terminal-header h1 {
+        font-size: 1.2rem;
+      }
+      .result-value {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-container">
+    
+    <!-- 头部 -->
+    <div class="terminal-header">
+      <h1>金策 · 均价计算器</h1>
+      <div class="terminal-subtitle">JINCE / AVERAGE PRICE TERMINAL</div>
+    </div>
+
+    <!-- 计算器主体 -->
+    <div class="calc-grid">
+      
+      <!-- 左侧：补仓克数 -->
+      <div class="calc-card">
+        <div class="card-header">
+          <div class="card-title">补仓克数计算</div>
+          <div class="card-tag">TARGET AVG</div>
+        </div>
+
+        <div class="input-group">
+          <label>当前均价 (¥/g)</label>
+          <input type="number" id="avgPrice1" placeholder="480.00" step="0.01" value="450.00">
+        </div>
+        <div class="input-group">
+          <label>持有克数 (g)</label>
+          <input type="number" id="holdGrams1" placeholder="20.00" step="0.01" value="20.00">
+        </div>
+        <div class="input-group">
+          <label>当前金价 (¥/g)</label>
+          <input type="number" id="currentPrice1" placeholder="500.00" step="0.01" value="500.00">
+        </div>
+        <div class="input-group">
+          <label>目标均价 (¥/g)</label>
+          <input type="number" id="targetAvg1" placeholder="480.00" step="0.01" value="480.00">
+        </div>
+
+        <button class="calc-btn" id="calcBuyBtn">计 算 需 买 克 数</button>
+
+        <div class="result-box">
+          <span class="result-label">需要买入</span>
+          <span class="result-value empty" id="buyResult">—</span>
+        </div>
+      </div>
+
+      <!-- 右侧：新均价预估 -->
+      <div class="calc-card">
+        <div class="card-header">
+          <div class="card-title">新均价预估</div>
+          <div class="card-tag">NEW AVG</div>
+        </div>
+
+        <div class="input-group">
+          <label>当前均价 (¥/g)</label>
+          <input type="number" id="avgPrice2" placeholder="480.00" step="0.01" value="450.00">
+        </div>
+        <div class="input-group">
+          <label>持有克数 (g)</label>
+          <input type="number" id="holdGrams2" placeholder="20.00" step="0.01" value="20.00">
+        </div>
+        <div class="input-group">
+          <label>当前金价 (¥/g)</label>
+          <input type="number" id="currentPrice2" placeholder="500.00" step="0.01" value="500.00">
+        </div>
+        <div class="input-group">
+          <label>打算买入 (g)</label>
+          <input type="number" id="buyGrams2" placeholder="10.00" step="0.01" value="10.00">
+        </div>
+
+        <button class="calc-btn" id="calcAvgBtn">计 算 新 均 价</button>
+
+        <div class="result-box">
+          <span class="result-label">买入后均价</span>
+          <span class="result-value empty" id="avgResult">—</span>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="terminal-footer">
+      行情仅供参考，决策前请核对银行实际买入/卖出价与交易规则。
+    </div>
+
+  </div>
+
+  <script>
+    (function() {
+      function parseInput(value) {
+        const num = parseFloat(value);
+        return isNaN(num) ? null : num;
+      }
+
+      function formatNumber(num, decimals = 2) {
+        if (num === null || isNaN(num)) return '—';
+        return Number(num.toFixed(decimals)).toString();
+      }
+
+      function setResult(element, text) {
+        if (text === null || text === undefined) {
+          element.textContent = '—';
+          element.classList.add('empty');
+        } else {
+          element.textContent = text;
+          element.classList.remove('empty');
+        }
+      }
+
+      // 左侧：计算补仓克数
+      function calcRequiredBuy() {
+        const avgPrice = parseInput(document.getElementById('avgPrice1').value);
+        const holdGrams = parseInput(document.getElementById('holdGrams1').value);
+        const currentPrice = parseInput(document.getElementById('currentPrice1').value);
+        const targetAvg = parseInput(document.getElementById('targetAvg1').value);
+        const resultEl = document.getElementById('buyResult');
+
+        if (avgPrice === null || holdGrams === null || currentPrice === null || targetAvg === null) {
+          setResult(resultEl, '请完整输入');
+          return;
+        }
+        if (avgPrice <= 0 || holdGrams < 0 || currentPrice <= 0 || targetAvg <= 0) {
+          setResult(resultEl, '数值需为正');
+          return;
+        }
+
+        const numerator = holdGrams * (avgPrice - targetAvg);
+        const denominator = targetAvg - currentPrice;
+
+        if (Math.abs(denominator) < 1e-12) {
+          if (Math.abs(avgPrice - targetAvg) < 1e-12) {
+            setResult(resultEl, '0 g (均价不变)');
+          } else {
+            setResult(resultEl, '无法达到');
+          }
+          return;
+        }
+
+        const requiredBuy = numerator / denominator;
+
+        if (requiredBuy < 0) {
+          setResult(resultEl, `${formatNumber(Math.abs(requiredBuy))} g (需卖出)`);
+        } else {
+          setResult(resultEl, `${formatNumber(requiredBuy)} g`);
+        }
+
+        if (Math.abs(requiredBuy) < 0.0001 && requiredBuy >= 0) {
+          setResult(resultEl, `0 g`);
+        }
+      }
+
+      // 右侧：计算新均价
+      function calcNewAvg() {
+        const avgPrice = parseInput(document.getElementById('avgPrice2').value);
+        const holdGrams = parseInput(document.getElementById('holdGrams2').value);
+        const currentPrice = parseInput(document.getElementById('currentPrice2').value);
+        const buyGrams = parseInput(document.getElementById('buyGrams2').value);
+        const resultEl = document.getElementById('avgResult');
+
+        if (avgPrice === null || holdGrams === null || currentPrice === null || buyGrams === null) {
+          setResult(resultEl, '请完整输入');
+          return;
+        }
+        if (avgPrice <= 0 || holdGrams < 0 || currentPrice <= 0 || buyGrams < 0) {
+          setResult(resultEl, '数值需为正');
+          return;
+        }
+
+        const totalCost = avgPrice * holdGrams + currentPrice * buyGrams;
+        const totalGrams = holdGrams + buyGrams;
+
+        if (totalGrams <= 0) {
+          setResult(resultEl, '克数不能全为0');
+          return;
+        }
+
+        const newAvg = totalCost / totalGrams;
+        let displayAvg = formatNumber(newAvg);
+        setResult(resultEl, `${displayAvg} ¥/g`);
+      }
+
+      function init() {
+        document.getElementById('calcBuyBtn').addEventListener('click', calcRequiredBuy);
+        document.getElementById('calcAvgBtn').addEventListener('click', calcNewAvg);
+
+        const inputIds1 = ['avgPrice1', 'holdGrams1', 'currentPrice1', 'targetAvg1'];
+        const inputIds2 = ['avgPrice2', 'holdGrams2', 'currentPrice2', 'buyGrams2'];
+
+        inputIds1.forEach(id => {
+          document.getElementById(id).addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); calcRequiredBuy(); }
+          });
+        });
+
+        inputIds2.forEach(id => {
+          document.getElementById(id).addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); calcNewAvg(); }
+          });
+        });
+
+        // 初始化计算
+        calcRequiredBuy();
+        calcNewAvg();
+      }
+
+      window.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
