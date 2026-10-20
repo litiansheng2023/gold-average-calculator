@@ -203,7 +203,7 @@
 
     /* ========== 手机端选项卡导航 (默认隐藏) ========== */
     .mobile-tabs {
-      display: none; /* 电脑端隐藏 */
+      display: none; 
       background-color: var(--tab-bg);
       border: 1px solid var(--border-color);
       border-radius: 10px;
@@ -214,7 +214,7 @@
 
     .mobile-tab-btn {
       flex: 1;
-      padding: 0.8rem 0;
+      padding: 0.6rem 0;
       text-align: center;
       font-size: 0.9rem;
       font-weight: 600;
@@ -233,7 +233,6 @@
       color: var(--gold-main);
     }
 
-    /* 滑动底块 */
     .mobile-tab-slider {
       position: absolute;
       top: 4px;
@@ -400,27 +399,54 @@
     /* ========== 响应式（手机端专属改造） ========== */
     @media (max-width: 768px) {
       body {
-        padding: 1rem;
+        padding: 1rem 1rem 2rem 1rem;
         align-items: flex-start;
-        padding-top: 2rem;
+        padding-top: 1rem; /* 减少顶部留白 */
       }
 
+      /* 修复标题重叠：改为左右分布 */
       .terminal-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-        padding-bottom: 1rem;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.8rem; /* 减少底部留白 */
+        margin-bottom: 0.5rem;
       }
 
+      .header-left {
+        gap: 0.2rem;
+      }
+
+      .terminal-header h1 {
+        font-size: 1.2rem;
+      }
+      
+      .terminal-header h1::before {
+        height: 16px;
+        width: 3px;
+      }
+
+      .terminal-subtitle {
+        font-size: 0.65rem;
+        margin-left: 0.5rem;
+      }
+
+      /* 取消绝对定位，使之与标题并排 */
       .theme-toggle {
-        position: absolute;
-        top: 2rem;
-        right: 1rem;
+        position: static; 
+        transform: scale(0.9); /* 稍微缩小一点 */
+        flex-shrink: 0;
       }
 
       /* 显示手机端选项卡 */
       .mobile-tabs {
         display: flex;
+        margin-top: 0.5rem;
+        margin-bottom: 0.2rem;
+      }
+
+      .mobile-tab-btn {
+        padding: 0.5rem 0; /* 压缩按钮高度 */
       }
 
       /* 卡片区改为相对定位，方便动画 */
@@ -429,28 +455,48 @@
         gap: 0; 
       }
 
-      /* 隐藏非激活的卡片，并添加滑动动画 */
+      /* 隐藏非激活的卡片，保留滑动动画 */
       .calc-card {
-        display: none; /* 默认全隐藏 */
-        animation: slideFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        margin-top: 1rem; /* 弥补 gap: 0 的间距 */
+        display: none;
+        animation: slideFadeIn 0.3s ease-out forwards;
+        margin-top: 1rem;
+        padding: 1.2rem 1rem; /* 缩小卡片内边距 */
       }
 
-      /* 被激活的卡片显示 */
       .calc-card.active-card {
         display: block;
       }
 
-      /* 滑动淡入动画 */
       @keyframes slideFadeIn {
-        from {
-          opacity: 0;
-          transform: translateX(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
+        from { opacity: 0; transform: translateX(10px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      /* 压缩卡片内部的垂直空间，让结果显示出来 */
+      .card-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+      }
+
+      .input-group {
+        margin-bottom: 0.8rem; /* 缩小输入框之间的间距 */
+        gap: 0.3rem;
+      }
+
+      .input-group input {
+        padding: 0.6rem 0.8rem; /* 缩小输入框高度 */
+        font-size: 0.95rem;
+      }
+
+      .calc-btn {
+        padding: 0.7rem; /* 缩小按钮高度 */
+        margin-top: 0.2rem;
+      }
+
+      .result-box {
+        margin-top: 1rem;
+        padding: 0.8rem 1rem;
+        min-height: 60px; /* 缩小结果框高度 */
       }
 
       /* 调整手机上显示的数字大小 */
@@ -478,7 +524,7 @@
       </div>
     </div>
 
-    <!-- 手机端专属选项卡 (电脑端 CSS 会自动隐藏) -->
+    <!-- 手机端专属选项卡 -->
     <div class="mobile-tabs">
       <div class="mobile-tab-slider" id="tabSlider"></div>
       <button class="mobile-tab-btn active" data-target="card-buy">补仓计算</button>
@@ -569,14 +615,11 @@
 
       mobileTabBtns.forEach((btn, index) => {
         btn.addEventListener('click', () => {
-          // 1. 移除所有按钮的 active，给当前加 active
           mobileTabBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
 
-          // 2. 移动滑块
           tabSlider.style.transform = `translateX(${index * 100}%)`;
 
-          // 3. 切换下方卡片
           if (index === 0) {
             cardBuy.classList.add('active-card');
             cardAvg.classList.remove('active-card');
